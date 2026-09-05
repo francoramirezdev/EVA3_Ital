@@ -64,6 +64,28 @@ export const useAuth = () => {
     return false;
   };
 
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    setState(prev => ({ ...prev, loading: true }));
+
+    // Simular delay de backend
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const user: User = {
+      id: Date.now().toString(),
+      email,
+      name,
+    };
+    
+    setState({
+      isAuthenticated: true,
+      user,
+      loading: false,
+    });
+    
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    return true;
+  };
+
   const logout = () => {
     setState({
       isAuthenticated: false,
@@ -77,6 +99,7 @@ export const useAuth = () => {
     ...state,
     restoring,
     login,
+    register,
     logout,
   };
 };

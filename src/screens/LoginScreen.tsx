@@ -19,24 +19,33 @@ import type { LoginFormState, AuthCredentials } from '../types/index';
 
 interface LoginScreenProps {
   onLoginSuccess?: (credentials: AuthCredentials) => void;
+  onRegisterSuccess?: (credentials: AuthCredentials) => void;
   loading?: boolean;
   error?: string | null;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
+  onRegisterSuccess,
   loading: externalLoading = false,
   error: externalError = null,
 }) => {
   const { isWeb: isWebScreen } = useResponsive();
   const [formState, setFormState] = useState<LoginFormState>({
+    name: '',
     email: '',
     password: '',
     loading: false,
     error: null,
+    isRegistering: false,
   });
 
   const passwordInputRef = useRef<TextInput>(null);
+  const emailInputRef = useRef<TextInput>(null);
+
+  const handleNameChange = (text: string) => {
+    setFormState(prev => ({ ...prev, name: text, error: null }));
+  };
 
   const handleEmailChange = (text: string) => {
     setFormState(prev => ({ ...prev, email: text, error: null }));
@@ -45,8 +54,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const handlePasswordChange = (text: string) => {
     setFormState(prev => ({ ...prev, password: text, error: null }));
   };
+  
+  const toggleMode = () => {
+    setFormState(prev => ({
+      ...prev,
+      isRegistering: !prev.isRegistering,
+      error: null,
+    }));
+  };
 
   const validateForm = (): boolean => {
+    if (formState.isRegistering && !formState.name.trim()) {
+      setFormState(prev => ({ ...prev, error: 'Ingresa tu nombre' }));
+      return false;
+    }
+
     if (!formState.email.trim()) {
       setFormState(prev => ({ ...prev, error: 'Ingresa tu email' }));
       return false;
@@ -71,14 +93,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return true;
   };
 
-  const handleLogin = async () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
     const credentials: AuthCredentials = {
       email: formState.email,
       password: formState.password,
+      ...(formState.isRegistering ? { name: formState.name } : {}),
     };
-    onLoginSuccess?.(credentials);
+    
+    if (formState.isRegistering) {
+      onRegisterSuccess?.(credentials);
+    } else {
+      onLoginSuccess?.(credentials);
+    }
   };
 
   const displayError = externalError || formState.error;
@@ -99,10 +127,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <View style={styles.webFormWrapper}>
               <FormContent
                 formState={formState}
+                handleNameChange={handleNameChange}
                 handleEmailChange={handleEmailChange}
                 handlePasswordChange={handlePasswordChange}
+                emailInputRef={emailInputRef}
                 passwordInputRef={passwordInputRef}
-                handleLogin={handleLogin}
+                handleSubmit={handleSubmit}
+                toggleMode={toggleMode}
                 displayError={displayError}
                 isLoading={isLoading}
               />
@@ -115,10 +146,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             <FormContent
               formState={formState}
+              handleNameChange={handleNameChange}
               handleEmailChange={handleEmailChange}
               handlePasswordChange={handlePasswordChange}
+              emailInputRef={emailInputRef}
               passwordInputRef={passwordInputRef}
-              handleLogin={handleLogin}
+              handleSubmit={handleSubmit}
+              toggleMode={toggleMode}
               displayError={displayError}
               isLoading={isLoading}
             />
@@ -131,20 +165,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
 interface FormContentProps {
   formState: LoginFormState;
+  handleNameChange: (text: string) => void;
   handleEmailChange: (text: string) => void;
   handlePasswordChange: (text: string) => void;
+  emailInputRef: React.RefObject<TextInput | null>;
   passwordInputRef: React.RefObject<TextInput | null>;
-  handleLogin: () => void;
+  handleSubmit: () => void;
+  toggleMode: () => void;
   displayError: string | null;
   isLoading: boolean;
 }
 
 const FormContent: React.FC<FormContentProps> = ({
   formState,
+  handleNameChange,
   handleEmailChange,
   handlePasswordChange,
+  emailInputRef,
   passwordInputRef,
-  handleLogin,
+  handleSubmit,
+  toggleMode,
   displayError,
   isLoading,
 }) => (
@@ -160,7 +200,21 @@ const FormContent: React.FC<FormContentProps> = ({
 
     {/* Form */}
     <View style={styles.formPanel}>
+      {formState.isRegistering && (
+        <TextInputField
+          label="Nombre"
+          placeholder="Tu nombre completo"
+          value={formState.name}
+          onChangeText={handleNameChange}
+          autoCapitalize="words"
+          returnKeyType="next"
+          onSubmitEditing={() => emailInputRef.current?.focus()}
+          editable={!isLoading}
+        />
+      )}
+
       <TextInputField
+        ref={emailInputRef}
         label="Email"
         placeholder="usuario@ejemplo.com"
         value={formState.email}
@@ -181,7 +235,7 @@ const FormContent: React.FC<FormContentProps> = ({
         onChangeText={handlePasswordChange}
         secureTextEntry
         returnKeyType="send"
-        onSubmitEditing={handleLogin}
+        onSubmitEditing={handleSubmit}
         editable={!isLoading}
       />
 
@@ -193,14 +247,16 @@ const FormContent: React.FC<FormContentProps> = ({
 
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={handleLogin}
+        onPress={handleSubmit}
         disabled={isLoading}
         activeOpacity={0.85}
       >
         {isLoading ? (
           <ActivityIndicator size="small" color={COLORS.pineOn} />
         ) : (
-          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+          <Text style={styles.loginButtonText}>
+            {formState.isRegistering ? 'Registrarse' : 'Iniciar sesión'}
+          </Text>
         )}
       </TouchableOpacity>
 
@@ -211,9 +267,13 @@ const FormContent: React.FC<FormContentProps> = ({
       </View>
 
       <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>¿No tienes cuenta? </Text>
-        <TouchableOpacity disabled={isLoading}>
-          <Text style={styles.signupLink}>Regístrate aquí</Text>
+        <Text style={styles.signupText}>
+          {formState.isRegistering ? '¿Ya tienes cuenta? ' : '¿No tienes cuenta? '}
+        </Text>
+        <TouchableOpacity disabled={isLoading} onPress={toggleMode}>
+          <Text style={styles.signupLink}>
+            {formState.isRegistering ? 'Inicia sesión' : 'Regístrate aquí'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

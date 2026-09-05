@@ -30,6 +30,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
 
   const groupedTransactions = groupByMonth();
+  const allTransactions = groupedTransactions.flatMap(([_, items]) => items);
   const entryNumber = String(transactions.length).padStart(4, '0');
 
   return (
@@ -88,24 +89,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
           <Text style={styles.sectionTitle}>Transacciones</Text>
 
           <View style={styles.ledgerSheet}>
-            {transactions.length === 0 ? (
+            {allTransactions.length === 0 ? (
               <Text style={styles.emptyText}>Aún no hay movimientos.</Text>
             ) : (
-              groupedTransactions.flatMap(([_, items]) =>
-                items.map((transaction, index) => (
-                  <TransactionRow
-                    key={transaction.id}
-                    icon={transaction.icon}
-                    label={transaction.label}
-                    category={transaction.category}
-                    amount={formatSignedCLP(transaction.amount, transaction.isExpense)}
-                    isExpense={transaction.isExpense}
-                    colors={colors}
-                    showDivider={index > 0}
-                    onDelete={() => deleteTransaction(transaction.id)}
-                  />
-                ))
-              )
+              allTransactions.map((transaction, index) => (
+                <TransactionRow
+                  key={transaction.id}
+                  label={transaction.label}
+                  category={transaction.category}
+                  amount={formatSignedCLP(transaction.amount, transaction.isExpense)}
+                  isExpense={transaction.isExpense}
+                  colors={colors}
+                  showDivider={index > 0}
+                  onDelete={() => deleteTransaction(transaction.id)}
+                />
+              ))
             )}
           </View>
         </View>
@@ -134,7 +132,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
 };
 
 interface TransactionRowProps {
-  icon: string;
   label: string;
   category: string;
   amount: string;
@@ -145,7 +142,6 @@ interface TransactionRowProps {
 }
 
 const TransactionRow: React.FC<TransactionRowProps> = ({
-  icon,
   label,
   category,
   amount,
@@ -156,14 +152,10 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
 }) => {
   const styles = createStyles(colors);
   const accent = isExpense ? colors.rust : colors.pine;
-  const accentTint = isExpense ? colors.rustTint : colors.pineTint;
 
   return (
     <View style={[styles.row, showDivider && styles.rowDivider]}>
       <TouchableOpacity activeOpacity={0.7} style={styles.rowContent}>
-        <View style={[styles.iconChip, { backgroundColor: accentTint }]}>
-          <Text style={styles.icon}>{icon}</Text>
-        </View>
         <View style={styles.rowInfo}>
           <Text style={styles.rowLabel} numberOfLines={1} ellipsizeMode="tail">
             {label}
@@ -334,6 +326,8 @@ const createStyles = (colors: ColorScheme) =>
       backgroundColor: colors.surface,
       borderRadius: RADIUS.lg,
       paddingHorizontal: SPACING.md,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
 
     emptyText: {
@@ -350,7 +344,7 @@ const createStyles = (colors: ColorScheme) =>
     },
 
     rowDivider: {
-      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: 1,
       borderTopColor: colors.border,
     },
 
@@ -362,17 +356,6 @@ const createStyles = (colors: ColorScheme) =>
       paddingVertical: SPACING.md,
     },
 
-    iconChip: {
-      width: 44,
-      height: 44,
-      borderRadius: RADIUS.md,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    icon: {
-      fontSize: 20,
-    },
 
     rowInfo: {
       flex: 1,

@@ -16,15 +16,29 @@ export default function App() {
 
 function AppContent() {
   const [fontsLoaded] = useFonts(FONTS_TO_LOAD);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const { isAuthenticated, user, loading, restoring, login, logout } = useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
+  const { isAuthenticated, user, loading, restoring, login, register, logout } = useAuth();
 
   const handleLoginSubmit = async (credentials: AuthCredentials) => {
-    setLoginError(null);
+    setAuthError(null);
     const success = await login(credentials.email, credentials.password);
 
     if (!success) {
-      setLoginError('Email o contraseña incorrectos');
+      setAuthError('Email o contraseña incorrectos');
+    }
+  };
+
+  const handleRegisterSubmit = async (credentials: AuthCredentials) => {
+    setAuthError(null);
+    if (!credentials.name) {
+      setAuthError('El nombre es requerido');
+      return;
+    }
+    
+    const success = await register(credentials.name, credentials.email, credentials.password);
+
+    if (!success) {
+      setAuthError('Hubo un error al registrarse');
     }
   };
 
@@ -39,8 +53,9 @@ function AppContent() {
   return (
     <LoginScreen
       onLoginSuccess={handleLoginSubmit}
+      onRegisterSuccess={handleRegisterSubmit}
       loading={loading}
-      error={loginError}
+      error={authError}
     />
   );
 }

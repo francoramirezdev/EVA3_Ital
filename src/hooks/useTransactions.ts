@@ -8,7 +8,6 @@ export interface Transaction {
   amount: number;
   label: string;
   category: string;
-  icon: string;
   isExpense: boolean;
   date: Date;
 }
@@ -20,7 +19,6 @@ export const useTransactions = () => {
       amount: 25000,
       label: 'Almuerzo',
       category: 'Comida',
-      icon: '🍔',
       isExpense: true,
       date: new Date(new Date().setDate(new Date().getDate() - 1)),
     },
@@ -29,7 +27,6 @@ export const useTransactions = () => {
       amount: 2450000,
       label: 'Salario',
       category: 'Ingresos',
-      icon: '💼',
       isExpense: false,
       date: new Date(new Date().setDate(new Date().getDate() - 5)),
     },
@@ -38,7 +35,6 @@ export const useTransactions = () => {
       amount: 12500,
       label: 'Uber',
       category: 'Transporte',
-      icon: '🚕',
       isExpense: true,
       date: new Date(new Date().setDate(new Date().getDate() - 3)),
     },
@@ -47,7 +43,6 @@ export const useTransactions = () => {
       amount: 15990,
       label: 'Netflix',
       category: 'Entretenimiento',
-      icon: '🎬',
       isExpense: true,
       date: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     },

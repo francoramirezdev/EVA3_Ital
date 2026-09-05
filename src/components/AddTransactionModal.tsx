@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+} from 'react-native';
 import { Button } from './Button';
 import { TextInputField } from './TextInputField';
 import { SPACING, TYPOGRAPHY, RADIUS, FONT_FAMILY, type ColorScheme } from '../constants/theme';
@@ -23,8 +34,22 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [amount, setAmount] = useState('');
   const [label, setLabel] = useState('');
   const [category, setCategory] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const accent = isExpense ? colors.rust : colors.pine;
   const styles = createStyles(colors);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleAdd = () => {
     if (amount && label && category) {
@@ -32,7 +57,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         amount: Number(amount),
         label,
         category,
-        icon: isExpense ? '💸' : '💰',
         isExpense,
         date: new Date(),
       });
@@ -43,67 +67,89 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   };
 
+  const handleClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
+
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContent}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -8 : 0}
+        style={styles.overlay}
+      >
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+
+        <View style={[styles.modalContent, isKeyboardVisible && styles.modalContentWithKeyboard]}>
           <View style={styles.handle} />
 
           <View style={styles.header}>
             <Text style={styles.title}>{isExpense ? 'Nuevo gasto' : 'Nuevo ingreso'}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeBtn} activeOpacity={0.7}>
               <Text style={[styles.closeIcon, { color: colors.ink }]}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.amountField}>
-            <Text style={styles.amountLabel}>Monto (CLP)</Text>
-            <View style={styles.amountRow}>
-              <Text style={[styles.amountSign, { color: accent }]}>$</Text>
-              <TextInput
-                style={[styles.amountInput, { color: accent }]}
-                placeholder="Ej: 25000"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="number-pad"
-                value={amount}
-                onChangeText={value => setAmount(value.replace(/\D/g, ''))}
+          <ScrollView
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.amountField}>
+              <Text style={styles.amountLabel}>Monto (CLP)</Text>
+              <View style={styles.amountRow}>
+                <Text style={[styles.amountSign, { color: accent }]}>$</Text>
+                <TextInput
+                  style={[styles.amountInput, { color: accent }]}
+                  placeholder="0"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="number-pad"
+                  value={amount}
+                  onChangeText={value => setAmount(value.replace(/\D/g, ''))}
+                />
+              </View>
+              <View style={[styles.amountRule, { backgroundColor: accent }]} />
+            </View>
+
+            <View style={styles.form}>
+              <TextInputField
+                label="Descripción"
+                placeholder="Ej: Almuerzo, Salario"
+                value={label}
+                onChangeText={setLabel}
+                colors={colors}
+              />
+              <TextInputField
+                label="Categoría"
+                placeholder="Ej: Comida, Transporte"
+                value={category}
+                onChangeText={setCategory}
+                colors={colors}
               />
             </View>
-            <View style={[styles.amountRule, { backgroundColor: accent }]} />
-          </View>
 
-          <View style={styles.form}>
-            <TextInputField
-              label="Descripción"
-              placeholder="Ej: Almuerzo, Salario"
-              value={label}
-              onChangeText={setLabel}
-              colors={colors}
-            />
-            <TextInputField
-              label="Categoría"
-              placeholder="Ej: Comida, Transporte"
-              value={category}
-              onChangeText={setCategory}
-              colors={colors}
-            />
-          </View>
-
-          <View style={styles.actions}>
-            <View style={{ flex: 1 }}>
-              <Button label="Cancelar" onPress={onClose} variant="secondary" size="medium" />
+            <View style={styles.actions}>
+              <View style={{ flex: 1 }}>
+                <Button label="Cancelar" onPress={handleClose} variant="secondary" size="medium" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button
+                  label="Agregar"
+                  onPress={handleAdd}
+                  variant={isExpense ? 'danger' : 'primary'}
+                  size="medium"
+                />
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Button
-                label="Agregar"
-                onPress={handleAdd}
-                variant={isExpense ? 'danger' : 'primary'}
-                size="medium"
-              />
-            </View>
-          </View>
+          </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -116,12 +162,26 @@ const createStyles = (colors: ColorScheme) =>
       backgroundColor: 'rgba(15, 26, 22, 0.55)',
     },
 
+    backdrop: {
+      flex: 1,
+    },
+
     modalContent: {
       backgroundColor: colors.surface,
       borderTopLeftRadius: RADIUS.xl,
       borderTopRightRadius: RADIUS.xl,
-      padding: SPACING.lg,
-      paddingBottom: SPACING.xl,
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.lg,
+      paddingBottom: Platform.OS === 'ios' ? 34 : SPACING.xl,
+      maxHeight: '85%',
+    },
+
+    modalContentWithKeyboard: {
+      paddingBottom: SPACING.xs,
+    },
+
+    scrollContent: {
+      paddingBottom: 0,
     },
 
     handle: {
@@ -205,5 +265,7 @@ const createStyles = (colors: ColorScheme) =>
     actions: {
       flexDirection: 'row',
       gap: SPACING.md,
+      marginTop: SPACING.sm,
+      marginBottom: SPACING.xs,
     },
   });

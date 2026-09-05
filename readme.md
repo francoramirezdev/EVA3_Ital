@@ -2,7 +2,7 @@
 
 [![Expo](https://img.shields.io/badge/Expo-v57-black?style=flat&logo=expo)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.86-blue?style=flat&logo=react)](https://reactnative.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 
 Aplicación móvil y web moderna para la gestión de finanzas personales. Desarrollada con React Native, Expo y TypeScript, con soporte para modo claro/oscuro, persistencia local y diseño totalmente responsivo.
 
@@ -86,13 +86,9 @@ ital-app/
 | :----------------- | :--------------------------------------------- |
 | **Framework**      | Expo SDK 57 / React Native 0.86                |
 | **UI Library**     | React 19.2                                     |
-| **Lenguaje**       | TypeScript 5.9                                 |
+| **Lenguaje**       | TypeScript 6.0                                 |
 | **Almacenamiento** | `@react-native-async-storage/async-storage`    |
 | **Fuentes**        | IBM Plex Sans, Mono, Serif (`expo-font`)       |
 | **Estilos**        | React Native StyleSheet + Tokens centralizados |
 
 ---
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT.
