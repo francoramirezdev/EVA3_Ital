@@ -8,19 +8,27 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Dimensions,
+  ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 
-import { COLORS, SPACING, styles as themeStyles, TYPOGRAPHY } from '../constants/theme';
+import { COLORS, SPACING, TYPOGRAPHY, RADIUS, FONT_FAMILY } from '../constants/theme';
+import { useResponsive } from '../hooks/useResponsive';
+import { TextInputField } from '../components/TextInputField';
 import type { LoginFormState, AuthCredentials } from '../types/index';
 
 interface LoginScreenProps {
   onLoginSuccess?: (credentials: AuthCredentials) => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({
+  onLoginSuccess,
+  loading: externalLoading = false,
+  error: externalError = null,
+}) => {
+  const { isWeb: isWebScreen } = useResponsive();
   const [formState, setFormState] = useState<LoginFormState>({
     email: '',
     password: '',
@@ -28,56 +36,35 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     error: null,
   });
 
-  const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
   const handleEmailChange = (text: string) => {
-    setFormState(prev => ({
-      ...prev,
-      email: text,
-      error: null,
-    }));
+    setFormState(prev => ({ ...prev, email: text, error: null }));
   };
 
   const handlePasswordChange = (text: string) => {
-    setFormState(prev => ({
-      ...prev,
-      password: text,
-      error: null,
-    }));
+    setFormState(prev => ({ ...prev, password: text, error: null }));
   };
 
   const validateForm = (): boolean => {
     if (!formState.email.trim()) {
-      setFormState(prev => ({
-        ...prev,
-        error: 'Ingresa tu email',
-      }));
+      setFormState(prev => ({ ...prev, error: 'Ingresa tu email' }));
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formState.email)) {
-      setFormState(prev => ({
-        ...prev,
-        error: 'Email inválido',
-      }));
+      setFormState(prev => ({ ...prev, error: 'Email inválido' }));
       return false;
     }
 
     if (!formState.password.trim()) {
-      setFormState(prev => ({
-        ...prev,
-        error: 'Ingresa tu contraseña',
-      }));
+      setFormState(prev => ({ ...prev, error: 'Ingresa tu contraseña' }));
       return false;
     }
 
     if (formState.password.length < 6) {
-      setFormState(prev => ({
-        ...prev,
-        error: 'Contraseña mínimo 6 caracteres',
-      }));
+      setFormState(prev => ({ ...prev, error: 'Contraseña mínimo 6 caracteres' }));
       return false;
     }
 
@@ -87,236 +74,284 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const handleLogin = async () => {
     if (!validateForm()) return;
 
-    setFormState(prev => ({
-      ...prev,
-      loading: true,
-      error: null,
-    }));
-
-    // Simulación de login (TODO: integrar con backend real)
-    setTimeout(() => {
-      setFormState(prev => ({
-        ...prev,
-        loading: false,
-      }));
-
-      const credentials: AuthCredentials = {
-        email: formState.email,
-        password: formState.password,
-      };
-
-      onLoginSuccess?.(credentials);
-    }, 1500);
+    const credentials: AuthCredentials = {
+      email: formState.email,
+      password: formState.password,
+    };
+    onLoginSuccess?.(credentials);
   };
 
+  const displayError = externalError || formState.error;
+  const isLoading = externalLoading || formState.loading;
+
   return (
-    <LinearGradient
-      colors={[COLORS.neutral.light, '#f3f4f6']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={themeStyles.container}
-    >
+    <View style={styles.screenBg}>
       <StatusBar hidden />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoIcon}>💰</Text>
-          </View>
-          <Text style={styles.appName}>Ital</Text>
-          <Text style={styles.tagline}>Control inteligente de tus finanzas</Text>
-        </View>
-
-        {/* Form Container */}
-        <View style={styles.formContainer}>
-          {/* Email Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={[
-                themeStyles.textInput,
-                focusedInput === 'email' && themeStyles.textInputFocused,
-              ]}
-              placeholder="usuario@ejemplo.com"
-              placeholderTextColor={COLORS.neutral.textLight}
-              value={formState.email}
-              onChangeText={handleEmailChange}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              returnKeyType="next"
-              onSubmitEditing={() => passwordInputRef.current?.focus()}
-              blurOnSubmit={false}
-              editable={!formState.loading}
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Contraseña</Text>
-            <TextInput
-              ref={passwordInputRef}
-              style={[
-                themeStyles.textInput,
-                focusedInput === 'password' && themeStyles.textInputFocused,
-              ]}
-              placeholder="Mínimo 6 caracteres"
-              placeholderTextColor={COLORS.neutral.textLight}
-              value={formState.password}
-              onChangeText={handlePasswordChange}
-              onFocus={() => setFocusedInput('password')}
-              onBlur={() => setFocusedInput(null)}
-              secureTextEntry={true}
-              returnKeyType="send"
-              onSubmitEditing={handleLogin}
-              blurOnSubmit={true}
-              editable={!formState.loading}
-            />
-          </View>
-
-          {/* Error Message */}
-          {formState.error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>⚠️ {formState.error}</Text>
-            </View>
-          )}
-
-          {/* Login Button */}
-          <TouchableOpacity
-            style={[themeStyles.button, themeStyles.buttonPrimary, styles.loginButton]}
-            onPress={handleLogin}
-            disabled={formState.loading}
-            activeOpacity={0.8}
+        {isWebScreen ? (
+          <ScrollView
+            contentContainerStyle={styles.webScrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            {formState.loading ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <Text style={themeStyles.buttonText}>Iniciar Sesión</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>o</Text>
-            <View style={styles.divider} />
-          </View>
-
-          {/* Sign Up Link */}
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>¿No tienes cuenta? </Text>
-            <TouchableOpacity disabled={formState.loading}>
-              <Text style={styles.signupLink}>Regístrate aquí</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>Tus datos están protegidos</Text>
-          <Text style={styles.footerSubtext}>Política de Privacidad</Text>
-        </View>
+            <View style={styles.webFormWrapper}>
+              <FormContent
+                formState={formState}
+                handleEmailChange={handleEmailChange}
+                handlePasswordChange={handlePasswordChange}
+                passwordInputRef={passwordInputRef}
+                handleLogin={handleLogin}
+                displayError={displayError}
+                isLoading={isLoading}
+              />
+            </View>
+          </ScrollView>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.mobileScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <FormContent
+              formState={formState}
+              handleEmailChange={handleEmailChange}
+              handlePasswordChange={handlePasswordChange}
+              passwordInputRef={passwordInputRef}
+              handleLogin={handleLogin}
+              displayError={displayError}
+              isLoading={isLoading}
+            />
+          </ScrollView>
+        )}
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 };
 
+interface FormContentProps {
+  formState: LoginFormState;
+  handleEmailChange: (text: string) => void;
+  handlePasswordChange: (text: string) => void;
+  passwordInputRef: React.RefObject<TextInput | null>;
+  handleLogin: () => void;
+  displayError: string | null;
+  isLoading: boolean;
+}
+
+const FormContent: React.FC<FormContentProps> = ({
+  formState,
+  handleEmailChange,
+  handlePasswordChange,
+  passwordInputRef,
+  handleLogin,
+  displayError,
+  isLoading,
+}) => (
+  <View style={styles.formContent}>
+    {/* Hero */}
+    <View style={styles.hero}>
+      <View style={styles.seal}>
+        <Text style={styles.sealIcon}>💰</Text>
+      </View>
+      <Text style={styles.wordmark}>Ital</Text>
+      <Text style={styles.tagline}>Control inteligente de tus finanzas</Text>
+    </View>
+
+    {/* Form */}
+    <View style={styles.formPanel}>
+      <TextInputField
+        label="Email"
+        placeholder="usuario@ejemplo.com"
+        value={formState.email}
+        onChangeText={handleEmailChange}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        onSubmitEditing={() => passwordInputRef.current?.focus()}
+        editable={!isLoading}
+      />
+
+      <TextInputField
+        ref={passwordInputRef}
+        label="Contraseña"
+        placeholder="Mínimo 6 caracteres"
+        value={formState.password}
+        onChangeText={handlePasswordChange}
+        secureTextEntry
+        returnKeyType="send"
+        onSubmitEditing={handleLogin}
+        editable={!isLoading}
+      />
+
+      {displayError && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>⚠ {displayError}</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={handleLogin}
+        disabled={isLoading}
+        activeOpacity={0.85}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={COLORS.pineOn} />
+        ) : (
+          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+        )}
+      </TouchableOpacity>
+
+      <View style={styles.dividerContainer}>
+        <View style={styles.divider} />
+        <Text style={styles.dividerText}>o</Text>
+        <View style={styles.divider} />
+      </View>
+
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>¿No tienes cuenta? </Text>
+        <TouchableOpacity disabled={isLoading}>
+          <Text style={styles.signupLink}>Regístrate aquí</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+
+    {/* Footer */}
+    <View style={styles.footerContainer}>
+      <Text style={styles.footerText}>Tus datos están protegidos</Text>
+      <Text style={styles.footerSubtext}>Política de privacidad</Text>
+    </View>
+  </View>
+);
+
 const styles = StyleSheet.create({
+  screenBg: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
+
   keyboardAvoidingView: {
     flex: 1,
-    justifyContent: 'space-between',
   },
 
-  headerContainer: {
+  webScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: SPACING.xxl + SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingVertical: SPACING.lg,
   },
 
-  logoContainer: {
+  webFormWrapper: {
+    width: '100%',
+    maxWidth: 440,
+    paddingHorizontal: SPACING.lg,
+  },
+
+  mobileScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+
+  formContent: {
+    justifyContent: 'center',
+  },
+
+  // Hero
+  hero: {
+    alignItems: 'center',
+    backgroundColor: COLORS.stamp,
+    borderRadius: RADIUS.xl,
+    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+  },
+
+  seal: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.brass,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
 
-  logoIcon: {
-    fontSize: 32,
+  sealIcon: {
+    fontSize: 28,
   },
 
-  appName: {
-    ...TYPOGRAPHY.display,
-    color: COLORS.primary,
+  wordmark: {
+    fontFamily: FONT_FAMILY.serifItalic,
+    fontSize: 40,
+    color: COLORS.stampText,
     marginBottom: SPACING.sm,
   },
 
   tagline: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.neutral.textLight,
+    color: 'rgba(251, 250, 246, 0.7)',
     textAlign: 'center',
   },
 
-  formContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.lg,
-  },
-
-  inputWrapper: {
-    marginBottom: SPACING.lg,
-  },
-
-  inputLabel: {
-    ...TYPOGRAPHY.small,
-    color: COLORS.neutral.dark,
-    marginBottom: SPACING.sm,
-    fontWeight: '600',
+  // Form panel
+  formPanel: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    marginTop: SPACING.lg,
+    padding: SPACING.lg,
   },
 
   errorContainer: {
-    backgroundColor: '#fee',
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.danger,
+    backgroundColor: COLORS.rustTint,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.rust,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
-    borderRadius: 8,
-    marginBottom: SPACING.lg,
+    borderRadius: RADIUS.sm,
+    marginBottom: SPACING.md,
   },
 
   errorText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.danger,
-    fontWeight: '600',
+    fontFamily: FONT_FAMILY.sansSemiBold,
+    color: COLORS.ink,
   },
 
   loginButton: {
-    marginTop: SPACING.md,
+    backgroundColor: COLORS.pine,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.sm,
     marginBottom: SPACING.lg,
-    height: 52,
+    minHeight: 52,
+  },
+
+  loginButtonText: {
+    fontFamily: FONT_FAMILY.sansSemiBold,
+    fontSize: 16,
+    letterSpacing: 0.2,
+    color: COLORS.pineOn,
   },
 
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: SPACING.lg,
+    marginBottom: SPACING.lg,
   },
 
   divider: {
     flex: 1,
-    height: 1,
-    backgroundColor: COLORS.neutral.border,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: COLORS.border,
   },
 
   dividerText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.neutral.textLight,
+    color: COLORS.textMuted,
     marginHorizontal: SPACING.md,
   },
 
@@ -328,28 +363,28 @@ const styles = StyleSheet.create({
 
   signupText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.neutral.text,
+    color: COLORS.textMuted,
   },
 
   signupLink: {
     ...TYPOGRAPHY.body,
-    color: COLORS.primary,
-    fontWeight: '600',
+    fontFamily: FONT_FAMILY.sansSemiBold,
+    color: COLORS.pine,
   },
 
   footerContainer: {
     alignItems: 'center',
-    paddingBottom: SPACING.xl,
+    paddingVertical: SPACING.xl,
   },
 
   footerText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.neutral.textLight,
+    color: COLORS.textMuted,
   },
 
   footerSubtext: {
-    ...TYPOGRAPHY.small,
-    color: COLORS.primary,
+    ...TYPOGRAPHY.eyebrow,
+    color: COLORS.pine,
     marginTop: SPACING.xs,
   },
 });

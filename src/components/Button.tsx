@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { COLORS, SPACING, TYPOGRAPHY } from '../constants/theme';
+import { getColors, RADIUS, SPACING, FONT_FAMILY } from '../constants/theme';
+import { useTheme } from '../hooks/useTheme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -21,24 +22,33 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   size = 'medium',
 }) => {
+  const { mode } = useTheme();
+  const colors = getColors(mode);
   const isDisabled = disabled || loading;
-  
+
+  const fill =
+    variant === 'primary'
+      ? { backgroundColor: colors.pine, borderWidth: 0 }
+      : variant === 'danger'
+        ? { backgroundColor: colors.rust, borderWidth: 0 }
+        : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.border };
+
+  const textColor =
+    variant === 'primary' ? colors.pineOn : variant === 'danger' ? colors.rustOn : colors.ink;
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        styles[`${variant}Button`],
-        styles[`${size}Size`],
-        isDisabled && styles.disabled,
-      ]}
+      style={[styles.button, styles[`${size}Size`], fill, isDisabled && styles.disabled]}
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={variant === 'secondary' ? COLORS.primary : COLORS.white} />
+        <ActivityIndicator size="small" color={textColor} />
       ) : (
-        <Text style={[styles.buttonText, styles[`${variant}Text`]]}>{label}</Text>
+        <Text style={[styles.buttonText, { color: textColor }]} numberOfLines={1}>
+          {label}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -46,63 +56,36 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
   },
 
-  // Variants
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-  },
-
-  secondaryButton: {
-    backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-
-  dangerButton: {
-    backgroundColor: COLORS.danger,
-  },
-
-  // Sizes
   smallSize: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
   },
 
   mediumSize: {
-    paddingVertical: SPACING.md,
+    paddingVertical: 12,
     paddingHorizontal: SPACING.lg,
+    minHeight: 48,
   },
 
   largeSize: {
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    paddingHorizontal: SPACING.lg,
     minHeight: 52,
   },
 
-  // Text variants
   buttonText: {
-    ...TYPOGRAPHY.subheading,
+    fontFamily: FONT_FAMILY.sansSemiBold,
+    fontSize: 16,
+    letterSpacing: 0.2,
     textAlign: 'center',
   },
 
-  primaryText: {
-    color: COLORS.white,
-  },
-
-  secondaryText: {
-    color: COLORS.primary,
-  },
-
-  dangerText: {
-    color: COLORS.white,
-  },
-
-  // Disabled state
   disabled: {
     opacity: 0.5,
   },

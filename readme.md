@@ -1,86 +1,108 @@
 # 💰 Ital – Control Inteligente de Finanzas
 
-App móvil moderna para gestión de ingresos y gastos. Diseñada con React Native + Expo + TypeScript. Interfaz clara, validación robusta, tema personalizable.
+[![Expo](https://img.shields.io/badge/Expo-v57-black?style=flat&logo=expo)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.86-blue?style=flat&logo=react)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 
-## 🎯 Qué es Ital
+Aplicación móvil y web moderna para la gestión de finanzas personales. Desarrollada con React Native, Expo y TypeScript, con soporte para modo claro/oscuro, persistencia local y diseño totalmente responsivo.
 
-Ital es una herramienta de control financiero personal que te permite:
+---
 
-- 📊 Registrar ingresos y gastos en tiempo real
-- 💼 Categorizar transacciones (comida, transporte, sueldo, etc)
-- 📈 Visualizar reportes y tendencias
-- 🔒 Mantener tus datos privados y seguros
-- ⚡ Interfaz rápida y responsiva en Android e iOS
+## ✨ Características Principales
 
-**Estado:** MVP con pantalla de login funcional. Dashboard y reportes en desarrollo.
+- **📊 Dashboard Financiero**: Visualización de saldo total, ingresos y gastos en tiempo real formateados en CLP.
+- **💸 Gestión de Transacciones**: Registro interactivo de ingresos y gastos con categorización y agrupación por meses.
+- **🌓 Tema Dinámico**: Soporte integrado para modo Claro y Oscuro con paleta de diseño personalizada.
+- **📱 Multiplataforma & Responsiva**: Experiencia fluida en dispositivos móviles (iOS, Android) y navegadores web.
+- **🔒 Autenticación & Persistencia**: Validación de credenciales en tiempo real y almacenamiento de sesión y transacciones con `AsyncStorage`.
+- **🎨 Tipografía Editorial**: Integración con la familia tipográfica IBM Plex (Sans, Mono y Serif).
+
+---
 
 ## 🚀 Inicio Rápido
 
-### Requisitos
+### Requisitos Previos
 
-- Node.js 18+
-- npm o yarn
-- Expo CLI: `npm install -g expo-cli`
-- iOS: Xcode (macOS) o Android Studio (Windows/Linux)
+- **Node.js**: v18 o superior
+- **Gestor de paquetes**: npm o yarn
+- **Expo Go** (opcional, para pruebas en dispositivo físico)
 
 ### Instalación
 
 ```bash
-# Clonar/entrar al proyecto
+# Entrar al directorio del proyecto
 cd ital-app
 
 # Instalar dependencias
 npm install
-
-# Instalar paquetes nativos de Expo
-npx expo install expo-linear-gradient
 ```
 
-### Ejecutar
+### Ejecución
 
 ```bash
-# Dev mode (escanea QR con Expo Go)
+# Iniciar servidor de desarrollo (escanea el código QR con Expo Go)
 npm start
 
-# iOS
-npm run ios
-
-# Android
-npm run android
-
-# Web
-npm run web
+# O ejecutar directamente por plataforma:
+npm run ios        # Simulador iOS (requiere macOS y Xcode)
+npm run android    # Emulador Android (requiere Android Studio)
+npm run web        # Versión Web en el navegador
 ```
+
+---
+
+## 🧪 Credenciales de Prueba
+
+Para acceder al dashboard, utiliza el usuario demo preconfigurado:
+
+| Campo          | Valor           |
+| :------------- | :-------------- |
+| **Email**      | `test@test.com` |
+| **Contraseña** | `123456`        |
+
+---
 
 ## 📁 Estructura del Proyecto
 
-```
+```text
 ital-app/
 ├── src/
-│   ├── components/              # Componentes reutilizables
-│   │   ├── Button.tsx           # Botón (primary/secondary/danger)
-│   │   ├── TextInputField.tsx   # Input de texto
-│   │   └── index.ts             # Barril (re-exports)
-│   │
-│   ├── screens/                 # Pantallas de la app
-│   │   ├── LoginScreen.tsx      # Autenticación
-│   │   └── index.ts             # Barril
-│   │
-│   ├── constants/
-│   │   └── theme.ts             # Design tokens (colores, tipografía, spacing)
-│   │
-│   ├── hooks/
-│   │   └── useFormValidation.ts # Validación de formularios
-│   │
-│   ├── types/
-│   │   └── index.ts             # Tipos TypeScript
-│   │
-│   └── index.ts                 # Barril raíz
-│
-├── App.tsx                      # Punto de entrada
-├── index.ts                     # Expo entry point
-├── app.json                     # Config Expo
-├── tsconfig.json                # Config TypeScript
-├── package.json
-└── LOGIN_SCREEN.md              # Docs pantalla login
+│   ├── components/      # Componentes UI reutilizables (Botones, Inputs, Modales)
+│   ├── constants/       # Sistema de diseño, tokens y temas (theme.ts)
+│   ├── hooks/           # Custom hooks (useAuth, useTransactions, useTheme, useResponsive)
+│   ├── screens/         # Pantallas principales (LoginScreen, HomeScreen)
+│   ├── types/           # Definiciones de tipos TypeScript
+│   └── utils/           # Utilidades de formato (moneda CLP, fechas)
+├── App.tsx              # Orquestador y proveedor de temas
+├── app.json             # Configuración de Expo
+└── package.json         # Dependencias y scripts
 ```
+
+---
+
+## 🛠 Stack Tecnológico
+
+| Herramienta        | Versión / Detalle                              |
+| :----------------- | :--------------------------------------------- |
+| **Framework**      | Expo SDK 57 / React Native 0.86                |
+| **UI Library**     | React 19.2                                     |
+| **Lenguaje**       | TypeScript 5.9                                 |
+| **Almacenamiento** | `@react-native-async-storage/async-storage`    |
+| **Fuentes**        | IBM Plex Sans, Mono, Serif (`expo-font`)       |
+| **Estilos**        | React Native StyleSheet + Tokens centralizados |
+
+---
+
+## Documentación Adicional
+
+Para detalles técnicos y guías de arquitectura avanzadas, consulta:
+
+- 📖 [Guía de Autenticación](./AUTH_GUIDE.md) – Flujo de sesión y recomendaciones de backend.
+- 📱 [Documentación de Login](./LOGIN_SCREEN.md) – Componentes y validaciones del login.
+- 💻 [Diseño Responsivo](./RESPONSIVE_DESIGN.md) – Breakpoints y adaptación para Web y Tablet.
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT.
