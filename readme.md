@@ -93,16 +93,6 @@ ital-app/
 
 ---
 
-## Documentación Adicional
-
-Para detalles técnicos y guías de arquitectura avanzadas, consulta:
-
-- 📖 [Guía de Autenticación](./AUTH_GUIDE.md) – Flujo de sesión y recomendaciones de backend.
-- 📱 [Documentación de Login](./LOGIN_SCREEN.md) – Componentes y validaciones del login.
-- 💻 [Diseño Responsivo](./RESPONSIVE_DESIGN.md) – Breakpoints y adaptación para Web y Tablet.
-
----
-
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT.
